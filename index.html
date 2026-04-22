@@ -1869,7 +1869,8 @@ function _doExportExcel(weekStr, weekOrders) {
   const headers = [
     'Nº Pedido','Cliente','Teléfono','Fecha Recogida',
     'Origen','Destino','Matrícula','Mercancía',
-    'Peso (kg)','Prioridad','Estado','Observaciones'
+    'Peso (kg)','Prioridad','Estado','Observaciones',
+    'Kg desc.','Hora entrega'
   ];
 
   const rows = weekOrders.map(o => [
@@ -1884,7 +1885,9 @@ function _doExportExcel(weekStr, weekOrders) {
     o.peso ? Number(o.peso) : '',
     prioLabels[o.prioridad] || 'Normal',
     o.status,
-    o.notas || ''
+    o.notas || '',
+    o.kgDelivered ? Number(o.kgDelivered) : '',
+    o.deliveredAt ? new Date(o.deliveredAt).toLocaleString('es-ES') : ''
   ]);
 
   // Title rows + headers + data
@@ -1895,7 +1898,7 @@ function _doExportExcel(weekStr, weekOrders) {
     headers,
     ...rows,
     [], // blank separator
-    ['TOTAL PEDIDOS:', weekOrders.length, '', '', '', '', '', '', `=SUM(I5:I${rows.length+4})`, '', '', '']
+    ['TOTAL PEDIDOS:', weekOrders.length, '', '', '', '', '', '', `=SUM(I5:I${rows.length+4})`, '', '', '', `=SUM(M5:M${rows.length+4})`, '']
   ];
 
   const wb = XLSX.utils.book_new();
@@ -1905,13 +1908,14 @@ function _doExportExcel(weekStr, weekOrders) {
   ws['!cols'] = [
     {wch:12},{wch:28},{wch:16},{wch:16},
     {wch:32},{wch:32},{wch:13},{wch:18},
-    {wch:11},{wch:13},{wch:14},{wch:32}
+    {wch:11},{wch:13},{wch:14},{wch:32},
+    {wch:11},{wch:18}
   ];
 
   // Merge title cell
   ws['!merges'] = [
-    { s:{r:0,c:0}, e:{r:0,c:11} },
-    { s:{r:1,c:0}, e:{r:1,c:11} },
+    { s:{r:0,c:0}, e:{r:0,c:13} },
+    { s:{r:1,c:0}, e:{r:1,c:13} },
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, 'Pedidos');

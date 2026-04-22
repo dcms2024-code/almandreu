@@ -887,7 +887,8 @@ window.addEventListener('appinstalled', () => {
               <th>Destino</th>
               <th>Matrícula</th>
               <th>Mercancía</th>
-              <th>Kg</th>
+              <th>Kg prev.</th>
+              <th>Kg desc.</th>
               <th>Prioridad</th>
               <th>Estado</th>
               <th>Notas</th>
@@ -1574,6 +1575,7 @@ function orderRow(o, isWS = false) {
       <td>${plateDisplay}${isExt ? `<br><span style="font-size:10px;color:var(--accent2);letter-spacing:1px;">${o.extNombre||''}</span>` : ''}</td>
       <td style="font-size:12px;">${o.mercancia||'—'}</td>
       <td style="font-family:var(--font-mono);font-size:12px;">${o.peso||'—'}</td>
+      <td style="font-family:var(--font-mono);font-size:12px;color:${o.kgDelivered ? 'var(--green)' : 'var(--muted)'};">${o.kgDelivered ? o.kgDelivered+' kg' : '—'}</td>
       <td>${priorityLabel(o.prioridad)}</td>
       <td>${statusBadge(o.status)}</td>
       <td style="font-size:11px;color:var(--muted);max-width:140px;">${isExt && o.extCoste ? `<span style="color:var(--accent2);">€${parseFloat(o.extCoste).toFixed(2)}</span> ` : ''}${o.notas||'—'}</td>

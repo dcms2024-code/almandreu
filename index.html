@@ -228,10 +228,6 @@
   .btn-sm-green:hover { background: var(--green); color: #000; }
   .btn-sm-blue { background: transparent; border: 1px solid var(--blue); color: var(--blue); padding: 6px 14px; font-size: 11px; letter-spacing: 1px; }
   .btn-sm-blue:hover { background: var(--blue); color: #fff; }
-  .btn-sm-wa { background: transparent; border: 1px solid #25d366; color: #25d366; padding: 6px 10px; font-size: 13px; }
-  .btn-sm-wa:hover { background: #25d366; color: #fff; }
-  .btn-sm-email { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 6px 10px; font-size: 13px; }
-  .btn-sm-email:hover { background: var(--accent); color: #000; }
   .btn-sm-manual { background: transparent; border: 1px solid var(--muted); color: var(--muted); padding: 6px 10px; font-size: 11px; letter-spacing: 1px; }
   .btn-sm-manual:hover { border-color: var(--accent); color: var(--accent); }
 
@@ -1609,9 +1605,7 @@ function orderRow(o, isWS = false) {
           ${o.status !== 'En tránsito' && o.status !== 'Entregado' ? `<button class="btn btn-sm-blue" onclick="changeStatus(${o.id},'En tránsito')">En ruta</button>` : ''}
           ${o.status !== 'Entregado' ? `<button class="btn btn-sm-green" onclick="changeStatus(${o.id},'Entregado')">Entregado</button>` : ''}
           ${o.status !== 'Entregado' ? `<button class="btn btn-sm-manual" onclick="openManualModal(${o.id})" title="Confirmar kg manualmente">⚖️ Kg</button>` : `<span style="font-size:11px;color:var(--green);">✓ ${o.kgDelivered||''}kg${o.manualConfirm?' <span style=\'color:var(--accent);font-size:10px;\'>oficina</span>':''}</span>`}
-          ${o.plate || o.extTel ? `<button class="btn btn-sm-wa" onclick="sendWhatsApp(${o.id})" title="Enviar WhatsApp">💬</button>` : ''}
-          ${(o.servicio === 'propio' || !o.servicio) && o.plate ? `<button class="btn btn-sm-email" onclick="sendEmail(${o.id})" title="Enviar Email">✉️</button>` : ''}
-          <button class="btn btn-danger" onclick="deleteOrder(${o.id})">✕</button>
+<button class="btn btn-danger" onclick="deleteOrder(${o.id})">✕</button>
         </div>
       </td>
     </tr>`;
@@ -1733,116 +1727,6 @@ function toggleCheck(id) {
 }
 
 // ─── MENSAJERÍA ───────────────────────────────────────────────────────────────
-function buildMessage(o) {
-  const prio = { urgente: '🔴 URGENTE', fragil: '🟡 FRÁGIL', normal: '✅ Normal' };
-  const fecha = o.fecha
-    ? new Date(o.fecha + 'T00:00:00').toLocaleDateString('es-ES', {weekday:'long', day:'2-digit', month:'long'})
-    : '—';
-  const isExt = o.servicio && o.servicio !== 'propio';
-  const conductorLine = isExt
-    ? `🚗 Vehículo: ${o.extMatricula || '—'} (${o.extNombre || ''})`
-    : `🚗 Matrícula: ${o.plate || '—'}`;
-
-  return `🚛 *ALMANDREU — HOJA DE CARGA*
-━━━━━━━━━━━━━━━━━━━━
-📋 Pedido: *#${String(o.id).padStart(4,'0')}*
-📅 Fecha: ${fecha}
-━━━━━━━━━━━━━━━━━━━━
-👤 Cliente: ${o.cliente}${o.telefono ? '\n📞 Tel. cliente: ' + o.telefono : ''}
-━━━━━━━━━━━━━━━━━━━━
-📍 *RECOGIDA:*
-${o.origen}
-
-🏁 *ENTREGA:*
-${o.destino}
-━━━━━━━━━━━━━━━━━━━━
-📦 Mercancía: ${o.mercancia || '—'}
-⚖️ Peso: ${o.peso ? o.peso + ' kg' : '—'}
-⚠️ Prioridad: ${prio[o.prioridad] || 'Normal'}
-${conductorLine}${o.codigo ? '\n🔑 *CÓDIGO CARGA/DESCARGA: ' + o.codigo + '*' : ''}${o.notas ? '\n📝 Notas: ' + o.notas : ''}
-━━━━━━━━━━━━━━━━━━━━
-_Mensaje generado por Almandreu_`;
-}
-
-function sendWhatsApp(orderId) {
-  const o = orders.find(x => x.id === orderId);
-  if (!o) return;
-
-  const isExt = o.servicio && o.servicio !== 'propio';
-  let phone = null;
-
-  if (isExt) {
-    // For external: use extTel
-    phone = o.extTel ? o.extTel.replace(/[\s\-\+]/g, '') : null;
-    if (!phone) {
-      alert('Este colaborador externo no tiene teléfono registrado.\nEdita el pedido y añade su número.');
-      return;
-    }
-  } else {
-    // For own fleet: look up driver phone
-    const v = vehicles.find(v => v.plate === o.plate);
-    phone = v?.phone ? v.phone.replace(/[\s\-\+]/g, '') : null;
-    if (!phone) {
-      alert('Este vehículo no tiene número de WhatsApp registrado.\nAñádelo en la pestaña Vehículos.');
-      return;
-    }
-  }
-
-  const msg = encodeURIComponent(buildMessage(o));
-  window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
-}
-
-function sendEmail(orderId) {
-  const o = orders.find(x => x.id === orderId);
-  if (!o) return;
-
-  const isExt = o.servicio && o.servicio !== 'propio';
-  let email = null;
-  let recipientName = '';
-
-  if (isExt) {
-    alert('El colaborador externo no usa la app. Usa WhatsApp o llámale directamente.');
-    return;
-  } else {
-    const v = vehicles.find(v => v.plate === o.plate);
-    email = v?.email || null;
-    recipientName = v?.driver || 'Conductor';
-    if (!email) {
-      alert('Este vehículo no tiene email de conductor registrado.\nAñádelo en la pestaña Vehículos.');
-      return;
-    }
-  }
-
-  const fecha = o.fecha
-    ? new Date(o.fecha + 'T00:00:00').toLocaleDateString('es-ES', {weekday:'long', day:'2-digit', month:'long'})
-    : '—';
-  const prio = { urgente: '🔴 URGENTE', fragil: '🟡 FRÁGIL', normal: 'Normal' };
-
-  const subject = encodeURIComponent(`[Almandreu] Pedido #${String(o.id).padStart(4,'0')} — ${o.cliente} — ${fecha}`);
-  const body = encodeURIComponent(
-`Hola ${recipientName},
-
-Tienes asignado el siguiente pedido:
-
-PEDIDO #${String(o.id).padStart(4,'0')}
-Fecha: ${fecha}
-
-CLIENTE: ${o.cliente}${o.telefono ? '\nTel. cliente: ' + o.telefono : ''}
-
-RECOGIDA: ${o.origen}
-ENTREGA:  ${o.destino}
-
-Mercancía: ${o.mercancia || '—'}
-Peso previsto: ${o.peso ? o.peso + ' kg' : '—'}
-Prioridad: ${prio[o.prioridad] || 'Normal'}
-${o.notas ? '\nNotas: ' + o.notas : ''}
-
----
-Mensaje generado por Almandreu`);
-
-  window.open(`mailto:${email}?subject=${subject}&body=${body}`, '_blank');
-}
-
 // ─── EXPORT EXCEL ─────────────────────────────────────────────────────────────
 function exportExcel() {
   const weekStr = document.getElementById('ws-week-picker').value || currentISOWeek();
@@ -1869,8 +1753,7 @@ function _doExportExcel(weekStr, weekOrders) {
   const headers = [
     'Nº Pedido','Cliente','Teléfono','Fecha Recogida',
     'Origen','Destino','Matrícula','Mercancía',
-    'Peso (kg)','Prioridad','Estado','Observaciones',
-    'Kg desc.','Hora entrega'
+    'Peso (kg)','Prioridad','Estado','Observaciones'
   ];
 
   const rows = weekOrders.map(o => [
@@ -1885,9 +1768,7 @@ function _doExportExcel(weekStr, weekOrders) {
     o.peso ? Number(o.peso) : '',
     prioLabels[o.prioridad] || 'Normal',
     o.status,
-    o.notas || '',
-    o.kgDelivered ? Number(o.kgDelivered) : '',
-    o.deliveredAt ? new Date(o.deliveredAt).toLocaleString('es-ES') : ''
+    o.notas || ''
   ]);
 
   // Title rows + headers + data
@@ -1898,7 +1779,7 @@ function _doExportExcel(weekStr, weekOrders) {
     headers,
     ...rows,
     [], // blank separator
-    ['TOTAL PEDIDOS:', weekOrders.length, '', '', '', '', '', '', `=SUM(I5:I${rows.length+4})`, '', '', '', `=SUM(M5:M${rows.length+4})`, '']
+    ['TOTAL PEDIDOS:', weekOrders.length, '', '', '', '', '', '', `=SUM(I5:I${rows.length+4})`, '', '', '']
   ];
 
   const wb = XLSX.utils.book_new();
@@ -1908,14 +1789,13 @@ function _doExportExcel(weekStr, weekOrders) {
   ws['!cols'] = [
     {wch:12},{wch:28},{wch:16},{wch:16},
     {wch:32},{wch:32},{wch:13},{wch:18},
-    {wch:11},{wch:13},{wch:14},{wch:32},
-    {wch:11},{wch:18}
+    {wch:11},{wch:13},{wch:14},{wch:32}
   ];
 
   // Merge title cell
   ws['!merges'] = [
-    { s:{r:0,c:0}, e:{r:0,c:13} },
-    { s:{r:1,c:0}, e:{r:1,c:13} },
+    { s:{r:0,c:0}, e:{r:0,c:11} },
+    { s:{r:1,c:0}, e:{r:1,c:11} },
   ];
 
   XLSX.utils.book_append_sheet(wb, ws, 'Pedidos');

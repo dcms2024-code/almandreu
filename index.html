@@ -1285,6 +1285,14 @@ function addVehicle() {
   ['v-plate','v-driver','v-phone','v-email','v-pin'].forEach(id => document.getElementById(id).value = '');
 }
 
+function editPin(id) {
+  const v = vehicles.find(v => v.id === id);
+  if (!v) return;
+  const newPin = prompt(`PIN para ${v.plate} (dejar vacío para quitar):`, v.pin || '');
+  if (newPin === null) return;
+  saveVehicle({ ...v, pin: newPin.trim() });
+}
+
 function removeVehicle(id) {
   const pin = prompt('🔒 Introduce el código para eliminar:');
   if (pin !== '2611') { alert('Código incorrecto. No se ha eliminado nada.'); return; }
@@ -1312,7 +1320,7 @@ function renderVehicles() {
         <div class="vehicle-type">${v.type}${v.driver ? ' · ' + v.driver : ''}</div>
         ${v.phone ? `<div style="font-size:11px;color:var(--muted);">📱 ${v.phone}</div>` : ''}
         ${v.email ? `<div style="font-size:11px;color:var(--muted);">✉️ ${v.email}</div>` : ''}
-        ${v.pin ? `<div style="font-size:11px;color:var(--muted);">🔒 PIN: ${v.pin}</div>` : '<div style="font-size:11px;color:#f5a623;">⚠️ Sin PIN</div>'}
+        <button onclick="editPin(${v.id})" style="margin-top:6px;width:100%;padding:6px 8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:8px;cursor:pointer;font-size:11px;color:${v.pin ? 'var(--muted)' : '#f5a623'};">${v.pin ? '🔒 PIN: ' + v.pin : '⚠️ Asignar PIN'}</button>
         <div class="vehicle-status">
           <span class="badge ${busy ? 'badge-transit' : 'badge-done'}">${statusLabel}</span>
         </div>

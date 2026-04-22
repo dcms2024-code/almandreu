@@ -951,6 +951,10 @@ window.addEventListener('appinstalled', () => {
           <label>Email conductor</label>
           <input type="email" id="v-email" placeholder="conductor@empresa.com">
         </div>
+        <div class="form-group">
+          <label>PIN acceso app</label>
+          <input type="text" id="v-pin" placeholder="Ej: 1234" maxlength="6" inputmode="numeric">
+        </div>
         <button class="btn btn-primary" onclick="addVehicle()" style="white-space:nowrap;align-self:flex-end;">+ Añadir</button>
       </div>
       <div class="vehicles-grid" id="vehicles-grid"></div>
@@ -1273,11 +1277,12 @@ function addVehicle() {
   const driver = document.getElementById('v-driver').value.trim();
   const phone = document.getElementById('v-phone').value.trim().replace(/\s+/g,'');
   const email = document.getElementById('v-email').value.trim();
+  const pin = document.getElementById('v-pin').value.trim();
   if (!plate) { alert('Introduce la matrícula'); return; }
   if (vehicles.find(v => v.plate === plate)) { alert('Esa matrícula ya existe'); return; }
-  const vehicle = { plate, type, driver, phone, email, id: Date.now() };
+  const vehicle = { plate, type, driver, phone, email, pin, id: Date.now() };
   saveVehicle(vehicle);
-  ['v-plate','v-driver','v-phone','v-email'].forEach(id => document.getElementById(id).value = '');
+  ['v-plate','v-driver','v-phone','v-email','v-pin'].forEach(id => document.getElementById(id).value = '');
 }
 
 function removeVehicle(id) {
@@ -1307,6 +1312,7 @@ function renderVehicles() {
         <div class="vehicle-type">${v.type}${v.driver ? ' · ' + v.driver : ''}</div>
         ${v.phone ? `<div style="font-size:11px;color:var(--muted);">📱 ${v.phone}</div>` : ''}
         ${v.email ? `<div style="font-size:11px;color:var(--muted);">✉️ ${v.email}</div>` : ''}
+        ${v.pin ? `<div style="font-size:11px;color:var(--muted);">🔒 PIN: ${v.pin}</div>` : '<div style="font-size:11px;color:#f5a623;">⚠️ Sin PIN</div>'}
         <div class="vehicle-status">
           <span class="badge ${busy ? 'badge-transit' : 'badge-done'}">${statusLabel}</span>
         </div>

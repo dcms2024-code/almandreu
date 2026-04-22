@@ -767,7 +767,7 @@ window.addEventListener('appinstalled', () => {
           </select>
         </div>
         <div class="form-group">
-          <label>🔑 Código de descarga</label>
+          <label>🔑 Código carga/descarga</label>
           <input type="text" id="f-codigo" placeholder="Ej: DESC-2024 / PIN: 4821" style="font-family:var(--font-mono);letter-spacing:2px;text-transform:uppercase;">
         </div>
 
@@ -1745,7 +1745,7 @@ ${o.destino}
 📦 Mercancía: ${o.mercancia || '—'}
 ⚖️ Peso: ${o.peso ? o.peso + ' kg' : '—'}
 ⚠️ Prioridad: ${prio[o.prioridad] || 'Normal'}
-${conductorLine}${o.codigo ? '\n🔑 *CÓDIGO DESCARGA: ' + o.codigo + '*' : ''}${o.notas ? '\n📝 Notas: ' + o.notas : ''}
+${conductorLine}${o.codigo ? '\n🔑 *CÓDIGO CARGA/DESCARGA: ' + o.codigo + '*' : ''}${o.notas ? '\n📝 Notas: ' + o.notas : ''}
 ━━━━━━━━━━━━━━━━━━━━
 _Mensaje generado por Almandreu_`;
 }

@@ -330,9 +330,14 @@ function buildCard(o) {
 
   const codigoHtml = o.codigo ? '<div class="card-codigo"><div><div class="codigo-label">🔑 Código carga/descarga</div><div class="codigo-value">'+o.codigo+'</div></div><button class="copy-btn" onclick="copyCode(\''+o.codigo+'\')">📋 Copiar</button></div>' : '';
   const notasHtml = o.notas ? '<div class="card-notes"><span>📝</span><span>'+o.notas+'</span></div>' : '';
-  const actionHtml = isDone
-    ? '<div class="done-summary"><div class="done-summary-title">✓ Entregado</div><div class="done-summary-data">'+(o.kgDelivered ? o.kgDelivered+' kg' : '')+' '+(o.deliveredAt ? '· '+o.deliveredAt : '')+'</div></div>'
-    : '<div class="card-action"><button class="confirm-btn" onclick="openModal('+o.id+')">📦 Confirmar entrega</button></div>';
+  let actionHtml;
+  if(isDone) {
+    actionHtml = '<div class="done-summary"><div class="done-summary-title">✓ Entregado</div><div class="done-summary-data">'+(o.kgDelivered ? o.kgDelivered+' kg' : '')+' '+(o.deliveredAt ? '· '+o.deliveredAt : '')+'</div></div>';
+  } else if(o.status === 'En tránsito') {
+    actionHtml = '<div class="card-action"><button class="confirm-btn" onclick="openModal('+o.id+')">📦 Confirmar entrega</button></div>';
+  } else {
+    actionHtml = '<div class="card-action"><button class="confirm-btn" style="background:#f5a623;" onclick="markTransit('+o.id+')">🚛 De camino</button></div>';
+  }
 
   return '<div class="order-card '+(isDone?'done':isUrgent?'urgent':'')+'">'+
     '<div class="card-top"><div><div class="card-id">#'+String(o.id).padStart(4,'0')+' · '+(o.mercancia||'Carga general')+'</div><div class="card-client">'+o.cliente+'</div></div><span class="card-badge '+bc+'">'+bt+'</span></div>'+
@@ -384,6 +389,13 @@ function validateModal() {
       } else warn.classList.remove('show');
     }
   }
+}
+
+async function markTransit(orderId) {
+  try {
+    await db.collection('orders').doc(String(orderId)).update({ status: 'En tránsito' });
+    showToast('🚛 Marcado como en tránsito');
+  } catch(e) { showToast('❌ Error al guardar. Inténtalo de nuevo.'); }
 }
 
 async function submitConfirmation() {

@@ -1104,6 +1104,7 @@ db.collection('vehicles').onSnapshot(snap => {
   vehicles = snap.docs.map(d => ({ ...d.data() }));
   updateVehicleSelects();
   renderVehicles();
+  renderOrdersTable();
 });
 
 // Listen to maestros in real time
